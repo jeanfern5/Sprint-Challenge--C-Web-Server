@@ -50,7 +50,11 @@ urlinfo_t *parse_url(char *url)
   port = colon + 1;
   // 6. Overwrite the colon with a '\0' so that we are just left with the hostname.
   *port = '\0';
- 
+
+  urlinfo->hostname = hostname;
+  urlinfo->port = port;
+  urlinfo->path = path;
+
   return urlinfo;
 }
 
@@ -70,11 +74,20 @@ int send_request(int fd, char *hostname, char *port, char *path)
   char request[max_request_size];
   int rv;
 
-  ///////////////////
-  // IMPLEMENT ME! //
-  ///////////////////
+  int request_length = snprintf(request, max_request_size,
+          "\nGET /%s HTTP/1.1\n"
+          "Host: %s:%s\n"
+          "Connection: close\n"
+          "\n",
+          path, hostname, port);
 
-  return 0;
+  rv = send(fd, request, request_length, 0);
+
+  if (rv < 0) {
+      perror("send");
+  }
+
+  return rv;
 }
 
 int main(int argc, char *argv[])
@@ -89,9 +102,10 @@ int main(int argc, char *argv[])
 
   
   // 1. Parse the input URL
-  urlinfo_t *ulrinfo_t = parse_url(argv[1]);
+  urlinfo_t *urlinfo = parse_url(argv[1]);
   // 2. Initialize a socket by calling the `get_socket` function from lib.c
   // 3. Call `send_request` to construct the request and send it
+  send_request(sockfd, urlinfo->hostname, urlinfo->port, urlinfo->path);
   // 4. Call `recv` in a loop until there is no more data to receive from the server. Print the received response to stdout.
   // 5. Clean up any allocated memory and open file descriptors.
 
