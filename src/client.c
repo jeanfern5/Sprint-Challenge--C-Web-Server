@@ -18,7 +18,6 @@ typedef struct urlinfo_t {
   char *path;
 } urlinfo_t;
 
-
 /**
  * Tokenize the given URL into hostname, path, and port.
  *
@@ -47,10 +46,11 @@ urlinfo_t *parse_url(char *url)
 
   // 4. Use strchr to find the first colon in the URL.
   colon = strchr(hostname, ':');
+  
   // 5. Set the port pointer to 1 character after the spot returned by strchr.
   port = colon + 1;
   // 6. Overwrite the colon with a '\0' so that we are just left with the hostname.
-  *port = '\0';
+  *colon = '\0';
 
   urlinfo->hostname = hostname;
   urlinfo->port = port;
@@ -76,10 +76,9 @@ int send_request(int fd, char *hostname, char *port, char *path)
   int rv;
 
   int request_length = snprintf(request, max_request_size,
-          "\nGET /%s HTTP/1.1\n"
+          "GET /%s HTTP/1.1\n"
           "Host: %s:%s\n"
-          "Connection: close\n"
-          "\n",
+          "Connection: close\n",
           path, hostname, port);
 
   rv = send(fd, request, request_length, 0);
@@ -112,10 +111,13 @@ int main(int argc, char *argv[])
 
   // 4. Call `recv` in a loop until there is no more data to receive from the server. Print the received response to stdout.
   while ((numbytes = recv(sockfd, buf, BUFSIZE - 1, 0)) > 0) {
-    fprintf(stdout, "\n%s\n", buf);
+    fprintf(stdout, "%s\n", buf);
   }
 
   // 5. Clean up any allocated memory and open file descriptors.
+  // free(urlinfo->hostname);
+  // free(urlinfo->port);
+  // free(urlinfo->path);
   free(urlinfo);
 
   close(sockfd);
